@@ -1,0 +1,5 @@
+1) we have a large number of words with frequency in unigram_freq.csv
+2) we can get all 5 letter words from this data set with frequency
+3) more frequent words are more likely to be the correct answer all other things being equal
+4) when we pick words, we should not limit ourselves to the words that are possible?
+5) we should pick words that limit the remaining words as much as possible
