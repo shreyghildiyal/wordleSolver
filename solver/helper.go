@@ -37,11 +37,11 @@ func HelpSolve(previousAttempts map[string]string) {
 
 	for word, res := range previousAttempts {
 		matchRes := getMatchRes(res)
-		possibleWords = PruneWords(possibleWords, word, matchRes)
+		PruneWords(possibleWords, word, matchRes)
 	}
 	fmt.Println("After Pruning word count", len(possibleWords))
 
-	fmt.Println(GetRepresentativeWord(possibleWords))
+	fmt.Println(GetRepresentativeWord2(possibleWords))
 
 	// for _, w := range allWords {
 	// 	isValid := true

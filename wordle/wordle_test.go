@@ -2,7 +2,8 @@ package wordle_test
 
 import (
 	"testing"
-	"wordleSolver/wordle"
+
+	"github.com/shreyghildiyal/wordleSolver/wordle"
 )
 
 func TestMatch(t *testing.T) {

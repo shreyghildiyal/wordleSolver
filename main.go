@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/shreyghildiyal/wordleSolver/solver"
+	"github.com/shreyghildiyal/wordleSolver/wordle"
 )
 
 func main() {
@@ -11,20 +12,20 @@ func main() {
 
 	// utils.GenerateFileWithLength(5)
 
-	// word := "pleat"
+	word := "ulcer"
 
-	// wdl := wordle.GetWordle(word)
+	wdl := wordle.GetWordle(word)
 
-	// solver.Solve2(wdl)
+	solver.Solve2(wdl)
 
-	solver.HelpSolve(
-		map[string]string{
-			"raise": "YBBBY",
-			"vertu": "BYYBY",
-			"buyer": "BYBGG",
-			"gluer": "BGYGG",
-		},
-	)
+	// solver.HelpSolve(
+	// 	map[string]string{
+	// 		"raise": "YBBBY",
+	// 		"vertu": "BYYBY",
+	// 		"buyer": "BYBGG",
+	// 		"gluer": "BGYGG",
+	// 	},
+	// )
 
 	// utils.CreateVerifiedWordsList()
 	// word := "point"

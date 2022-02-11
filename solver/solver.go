@@ -5,47 +5,21 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/shreyghildiyal/wordleSolver/wordle"
 )
 
-func Solve(w wordle.Wordle) {
-
-	possibleWords := getWordsOfLength(w.GetWordLength())
-	// tryWord := "slate"
-	for i := 0; ; i++ {
-		tryWord := GetRepresentativeWord(possibleWords)
-		// fmt.Println("possible words Count", len(possibleWords))
-		fmt.Println("trying", tryWord, "attempt", i+1)
-		matchRes := w.Match(tryWord)
-		fmt.Println("result", getResultString(matchRes))
-		allMatch := true
-		for _, res := range matchRes {
-			if res != wordle.CORRECT {
-				allMatch = false
-			}
-		}
-		if allMatch {
-			break
-		} else {
-			possibleWords = PruneWords(possibleWords, tryWord, matchRes)
-		}
-
-	}
-
-}
-
 func getResultString(res []wordle.MatchType) string {
 	resRunes := make([]string, len(res))
 	for i, r := range res {
 		if r == wordle.CORRECT {
-			resRunes[i] = "C"
+			resRunes[i] = "G"
 		} else if r == wordle.NOT_PRESENT {
-			resRunes[i] = "N"
+			resRunes[i] = "B"
 		} else if r == wordle.WRONG_POSITION {
-			resRunes[i] = "W"
+			resRunes[i] = "Y"
 		}
 	}
 	return strings.Join(resRunes, "")
@@ -90,53 +64,20 @@ func IsValidWord(word, prevWord string, prevRes []wordle.MatchType) bool {
 	return true
 }
 
-func PruneWords(words []string, prevWord string, prevRes []wordle.MatchType) []string {
+func PruneWords(words map[string]int32, prevWord string, prevRes []wordle.MatchType) {
 
-	newWords := []string{}
+	// newWords := map[string]int32{}
 
-	for _, word := range words {
+	for word := range words {
 		// isValid := true
 		isValid := IsValidWord(word, prevWord, prevRes)
-		// wordChecks:
 
-		// 	for i, res := range prevRes {
-		// 		char := prevWord[i]
-		// 		if res == wordle.CORRECT {
-		// 			if word[i] != char {
-		// 				isValid = false
-		// 				break wordChecks
-		// 			}
-		// 		} else if res == wordle.WRONG_POSITION {
-		// 			if word[i] == char {
-		// 				isValid = false
-		// 				break wordChecks
-		// 			}
-		// 			foundChar := false
-		// 			for _, ch := range word {
-		// 				if byte(ch) == char {
-		// 					foundChar = true
-		// 				}
-		// 			}
-		// 			if !foundChar {
-		// 				isValid = false
-		// 				break wordChecks
-		// 			}
-
-		// 		} else if res == wordle.NOT_PRESENT {
-		// 			for _, ch := range word {
-		// 				if byte(ch) == char {
-		// 					isValid = false
-		// 					break wordChecks
-		// 				}
-		// 			}
-		// 		}
-		// 	}
-		if isValid {
-			newWords = append(newWords, word)
+		if !isValid {
+			delete(words, word)
 		}
 	}
 
-	return newWords
+	// return newWords
 }
 
 func GetRepresentativeWord(words []string) string {
@@ -175,36 +116,56 @@ func GetRepresentativeWord(words []string) string {
 	return representativeWord
 }
 
-func getWordsOfLength(l int) []string {
+func getCleanedWordsOfLength(l int) map[string]int32 {
+	wantedList := map[string]int32{}
+	return wantedList
+}
 
-	inputFileName := "cleanedWords.txt"
+func populateWordFrequencies(wantedList map[string]int32) {
+	inputFileName2 := "unigram_freq.csv"
 
-	file, err := os.Open(inputFileName)
+	file2, err := os.Open(inputFileName2)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer file.Close()
+	defer file2.Close()
 
-	scanner := bufio.NewScanner(file)
-	// optionally, resize scanner's capacity for lines over 64K, see next example
-
-	wantedList := []string{}
-	regexString := fmt.Sprintf("^([a-z]|[A-Z]){%d}$", l)
-	r, _ := regexp.Compile(regexString)
+	scanner := bufio.NewScanner(file2)
 
 	for scanner.Scan() {
-		word := scanner.Text()
-		word = strings.Trim(word, "\n")
-		a := r.MatchString(word)
-		if a {
-			wantedList = append(wantedList, strings.ToLower(word))
+		line := scanner.Text()
+		// word = strings.Trim(word, "\n")
+		// a := r.MatchString(word)
+		parts := strings.Split(line, ",")
+		if _, found := wantedList[parts[0]]; found {
+			freq, err := strconv.ParseInt(parts[1], 10, 32)
+			if err == nil {
+				wantedList[parts[0]] = int32(freq)
+			}
 		}
+
 	}
 
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Wanted List length", len(wantedList))
+	// fmt.Println("Wanted List length", len(wantedList))
+	// return wantedList
+}
+
+func getWordsOfLength(l int) map[string]int32 {
+
+	wantedList := getCleanedWordsOfLength(l)
+	populateWordFrequencies(wantedList)
+
+	// inputFileName1 := "cleanedWords.txt"
+
+	// wantedList := map[string]int32{}
+
+	// optionally, resize scanner's capacity for lines over 64K, see next example
+
+	// regexString := fmt.Sprintf("^([a-z]|[A-Z]){%d}$", l)
+	// r, _ := regexp.Compile(regexString)
 	return wantedList
 }
 
@@ -227,32 +188,57 @@ func Solve2(w wordle.Wordle) {
 		if allMatch {
 			break
 		} else {
-			possibleWords = PruneWords(possibleWords, tryWord, matchRes)
+			PruneWords(possibleWords, tryWord, matchRes)
 		}
 
 	}
 }
 
-func GetRepresentativeWord2(words []string) string {
+func GetRepresentativeWord2(words map[string]int32) string {
 	// charactersCount := 26
 	// charFrequencyMat := [][]int{}
 
-	representativeWord := words[0]
+	representativeWord := ""
+	var representativeFreq int32
+
+	for w, f := range words {
+		representativeWord = w
+		representativeFreq = f
+		break
+	}
+
 	representativeScore := len(words)
 
-	for _, word := range words {
+	totalWords := len(words)
+	i := 0
+
+	for word, freq := range words {
+		// startTime := time.Now()
 		score := GetSplitScore(word, words)
+		// fmt.Println("time to get score for one word", time.Since(startTime).Milliseconds())
 		// fmt.Println(word, score)
 		if score < representativeScore {
 			representativeWord = word
 			representativeScore = score
+			representativeFreq = freq
+			// fmt.Println(representativeWord, representativeScore, representativeFreq)
+		} else if score == representativeScore && freq > representativeFreq {
+			representativeWord = word
+			representativeScore = score
+			representativeFreq = freq
+			// fmt.Println(representativeWord, representativeScore, representativeFreq)
+		}
+		i++
+		if i%100 == 0 {
+			fmt.Println(i, "/", totalWords)
+			fmt.Println(representativeWord, representativeScore, representativeFreq)
 		}
 	}
 	fmt.Println(representativeWord, representativeScore)
 	return representativeWord
 }
 
-func GetSplitScore(word string, words []string) int {
+func GetSplitScore(word string, words map[string]int32) int {
 	possibleMatchresults := GetPossibleMatchResults(len(word))
 	// for _, res := range possibleMatchresults {
 	// 	fmt.Println(getResultString(res))
@@ -260,7 +246,7 @@ func GetSplitScore(word string, words []string) int {
 	maxScore := 0
 	for _, possibleMatchres := range possibleMatchresults {
 		score := 0
-		for _, w := range words {
+		for w := range words {
 			if IsValidWord(w, word, possibleMatchres) {
 				score++
 			}

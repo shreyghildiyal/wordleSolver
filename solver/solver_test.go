@@ -2,7 +2,8 @@ package solver_test
 
 import (
 	"testing"
-	"wordleSolver/solver"
+
+	"github.com/shreyghildiyal/wordleSolver/solver"
 )
 
 func TestIncrement1(t *testing.T) {
