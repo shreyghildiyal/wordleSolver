@@ -12,18 +12,18 @@ func main() {
 
 	// utils.GenerateFileWithLength(5)
 
-	word := "ulcer"
+	word := "robin"
 
 	wdl := wordle.GetWordle(word)
 
 	solver.Solve2(wdl)
 
 	// solver.HelpSolve(
-	// 	map[string]string{
-	// 		"raise": "YBBBY",
-	// 		"vertu": "BYYBY",
-	// 		"buyer": "BYBGG",
-	// 		"gluer": "BGYGG",
+	// map[string]string{
+	// "raise": "YYBBB",
+	// "vertu": "YYBBB",
+	// "buyer": "BYBGG",
+	// "gluer": "BGYGG",
 	// 	},
 	// )
 

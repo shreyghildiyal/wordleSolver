@@ -117,7 +117,34 @@ func GetRepresentativeWord(words []string) string {
 }
 
 func getCleanedWordsOfLength(l int) map[string]int32 {
+
+	inputFileName2 := "cleanedWords.txt"
+
+	file2, err := os.Open(inputFileName2)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file2.Close()
+
 	wantedList := map[string]int32{}
+
+	scanner := bufio.NewScanner(file2)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		// parts := strings.Split(line, ",")
+		// if _, found := wantedList[parts[0]]; found {
+		// 	freq, err := strconv.ParseInt(parts[1], 10, 32)
+		// 	if err == nil {
+		// 		wantedList[parts[0]] = int32(freq)
+		// 	}
+		// }
+		if len(line) == l {
+			wantedList[line] = 0
+		}
+
+	}
+
 	return wantedList
 }
 
@@ -142,6 +169,7 @@ func populateWordFrequencies(wantedList map[string]int32) {
 			if err == nil {
 				wantedList[parts[0]] = int32(freq)
 			}
+
 		}
 
 	}
@@ -153,10 +181,21 @@ func populateWordFrequencies(wantedList map[string]int32) {
 	// return wantedList
 }
 
+func removeUnusedWords(wantedList map[string]int32) {
+	for word, freq := range wantedList {
+		if freq == 0 {
+			delete(wantedList, word)
+		}
+	}
+}
+
 func getWordsOfLength(l int) map[string]int32 {
 
 	wantedList := getCleanedWordsOfLength(l)
+	fmt.Println("cleanedWords count", len(wantedList))
 	populateWordFrequencies(wantedList)
+	removeUnusedWords(wantedList)
+	fmt.Println("After populating the frequencies", len(wantedList))
 
 	// inputFileName1 := "cleanedWords.txt"
 
@@ -189,6 +228,9 @@ func Solve2(w wordle.Wordle) {
 			break
 		} else {
 			PruneWords(possibleWords, tryWord, matchRes)
+			if len(possibleWords) < 40 {
+				fmt.Println("POSSIBLE", possibleWords)
+			}
 		}
 
 	}
