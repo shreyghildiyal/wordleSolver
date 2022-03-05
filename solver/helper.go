@@ -35,45 +35,24 @@ func HelpSolve(previousAttempts map[string]string) {
 	possibleWords := getWordsOfLength(wordLen)
 	fmt.Println("Before Pruning word count", len(possibleWords))
 
+	// minLetterFrequency := map[byte]int{}
 	for word, res := range previousAttempts {
+		// updateMinLetterFrequency
 		matchRes := getMatchRes(res)
 		PruneWords(possibleWords, word, matchRes)
 	}
 	fmt.Println("After Pruning word count", len(possibleWords))
 
+	count := 0
+	for word := range possibleWords {
+		fmt.Printf("%s, ", word)
+		count++
+		if count >= 30 {
+			break
+		}
+	}
+	fmt.Println("")
+
 	fmt.Println(GetRepresentativeWord2(possibleWords))
 
-	// for _, w := range allWords {
-	// 	isValid := true
-	// wordCheck:
-	// 	for i, ch := range w {
-	// 		if correctLetters[i] != '.' && byte(ch) != correctLetters[i] {
-	// 			isValid = false
-	// 			break wordCheck
-	// 		}
-	// 		for _, invalidChar := range invalidLetters {
-	// 			if invalidChar == ch {
-	// 				isValid = false
-	// 				break wordCheck
-	// 			}
-	// 		}
-	// 		for _, wrongPosChar := range wrongPositionLetters {
-	// 			found := false
-	// 			for _, ch := range w {
-	// 				if ch == wrongPosChar {
-	// 					found = true
-	// 					break
-	// 				}
-	// 			}
-	// 			if !found {
-	// 				isValid = false
-	// 				break wordCheck
-	// 			}
-	// 		}
-	// 	}
-
-	// 	if isValid {
-	// 		fmt.Println("valid word", w)
-	// 	}
-	// }
 }

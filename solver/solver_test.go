@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/shreyghildiyal/wordleSolver/solver"
+	"github.com/shreyghildiyal/wordleSolver/wordle"
 )
 
 func TestIncrement1(t *testing.T) {
@@ -69,4 +70,12 @@ func TestIncrement5(t *testing.T) {
 		}
 	}
 
+}
+
+func TestIsValidWord(t *testing.T) {
+	isValid := solver.IsValidWord("rupee", "route", []wordle.MatchType{wordle.CORRECT, wordle.NOT_PRESENT, wordle.WRONG_POSITION, wordle.NOT_PRESENT, wordle.CORRECT})
+	if !isValid {
+		t.Fail()
+
+	}
 }

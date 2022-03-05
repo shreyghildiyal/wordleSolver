@@ -2,7 +2,9 @@ package solver
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -26,38 +28,55 @@ func getResultString(res []wordle.MatchType) string {
 }
 
 func IsValidWord(word, prevWord string, prevRes []wordle.MatchType) bool {
-	// isValid := true
+
+	minCharFreq := map[byte]int{}
 
 	for i, res := range prevRes {
 		char := prevWord[i]
 		if res == wordle.CORRECT {
 			if word[i] != char {
+				// fmt.Println("Rejected for missing correct letter", word[i])
 				return false
 
 			}
 		} else if res == wordle.WRONG_POSITION {
 			if word[i] == char {
+				// fmt.Println("Rejected because wrong position letter present at the location", word[i], i)
 				return false
 
 			}
-			foundChar := false
-			for _, ch := range word {
-				if byte(ch) == char {
-					foundChar = true
+			minCharFreq[char]++
+		}
+	}
+
+	// fmt.Println(minCharFreq)
+
+	for i, res := range prevRes {
+		char := prevWord[i]
+		if res == wordle.NOT_PRESENT {
+			if minCharFreq[char] == 0 {
+				// if char in word, return false
+				for j, ch := range word {
+					if byte(ch) == char && prevRes[j] != wordle.CORRECT {
+						// fmt.Println("rejected because the character is supposed to be missing, but is present", ch)
+						// fmt.Println(ch)
+						return false
+					}
 				}
 			}
-			if !foundChar {
-				return false
+		}
+	}
 
+	for ch, count := range minCharFreq {
+		wCount := 0
+		for i, wch := range word {
+			if byte(wch) == ch && prevRes[i] != wordle.CORRECT {
+				wCount++
 			}
-
-		} else if res == wordle.NOT_PRESENT {
-			for _, ch := range word {
-				if byte(ch) == char {
-					return false
-
-				}
-			}
+		}
+		if wCount < count {
+			// fmt.Println("rejected because the letter didnt occur often enough", ch, count, wCount)
+			return false
 		}
 	}
 
@@ -116,9 +135,13 @@ func GetRepresentativeWord(words []string) string {
 	return representativeWord
 }
 
+type DummyWord struct {
+	Word string `json:"word"`
+}
+
 func getCleanedWordsOfLength(l int) map[string]int32 {
 
-	inputFileName2 := "cleanedWords.txt"
+	inputFileName2 := "EDMTDictionary.json"
 
 	file2, err := os.Open(inputFileName2)
 	if err != nil {
@@ -128,22 +151,41 @@ func getCleanedWordsOfLength(l int) map[string]int32 {
 
 	wantedList := map[string]int32{}
 
-	scanner := bufio.NewScanner(file2)
+	byteValue, _ := ioutil.ReadAll(file2)
 
-	for scanner.Scan() {
-		line := scanner.Text()
-		// parts := strings.Split(line, ",")
-		// if _, found := wantedList[parts[0]]; found {
-		// 	freq, err := strconv.ParseInt(parts[1], 10, 32)
-		// 	if err == nil {
-		// 		wantedList[parts[0]] = int32(freq)
-		// 	}
-		// }
-		if len(line) == l {
-			wantedList[line] = 0
-		}
+	fmt.Println("Length of bytes in file", len(byteValue))
 
+	words := []DummyWord{}
+
+	err = json.Unmarshal(byteValue, &words)
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	for _, word := range words {
+		if len(word.Word) == l {
+			wantedList[strings.ToLower(word.Word)] = 0
+		}
+	}
+
+	// scanner := bufio.NewScanner(file2)
+
+	// for scanner.Scan() {
+	// 	line := scanner.Text()
+	// 	// parts := strings.Split(line, ",")
+	// 	// if _, found := wantedList[parts[0]]; found {
+	// 	// 	freq, err := strconv.ParseInt(parts[1], 10, 32)
+	// 	// 	if err == nil {
+	// 	// 		wantedList[parts[0]] = int32(freq)
+	// 	// 	}
+	// 	// }
+	// 	if len(line) == l {
+	// 		wantedList[line] = 0
+	// 	}
+
+	// }
+
+	fmt.Println("Number of results in wantedList", len(wantedList))
 
 	return wantedList
 }
@@ -166,7 +208,7 @@ func populateWordFrequencies(wantedList map[string]int32) {
 		parts := strings.Split(line, ",")
 		if _, found := wantedList[parts[0]]; found {
 			freq, err := strconv.ParseInt(parts[1], 10, 32)
-			if err == nil {
+			if err == nil && freq >= 50000 {
 				wantedList[parts[0]] = int32(freq)
 			}
 
